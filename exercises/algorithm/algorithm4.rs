@@ -3,7 +3,7 @@
 	This problem requires you to implement a basic interface for a binary tree
 */
 
-//I AM NOT DONE
+
 use std::cmp::Ordering;
 use std::fmt::Debug;
 
@@ -28,7 +28,7 @@ where
 
 impl<T> TreeNode<T>
 where
-    T: Ord,
+    T: Ord+ Clone,
 {
     fn new(value: T) -> Self {
         TreeNode {
@@ -41,7 +41,7 @@ where
 
 impl<T> BinarySearchTree<T>
 where
-    T: Ord,
+    T: Ord+ Clone,
 {
 
     fn new() -> Self {
@@ -50,13 +50,49 @@ where
 
     // Insert a value into the BST
     fn insert(&mut self, value: T) {
-        //TODO
+        let new_node = TreeNode::new(value.clone());
+        match self.root {
+            Some(ref mut node) => {
+                let mut current = node;
+                loop {
+                    if value < current.value {
+                        match current.left {
+                            Some(ref mut left) => current = left,
+                            None => {
+                                current.left = Some(Box::new(new_node));
+                                break;
+                            }
+                        }
+                    } else if value > current.value {
+                        match current.right {
+                            Some(ref mut right) => current = right,
+                            None => {
+                                current.right = Some(Box::new(new_node));
+                                break;
+                            }
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+            None => {
+                self.root = Some(Box::new(new_node));
+            }
+        }
     }
 
     // Search for a value in the BST
     fn search(&self, value: T) -> bool {
-        //TODO
-        true
+        let mut current = &self.root;
+        while let Some(node) = current {
+            match value.cmp(&node.value) {
+                Ordering::Less => current = &node.left,
+                Ordering::Greater => current = &node.right,
+                Ordering::Equal => return true,
+            }
+        }
+        false
     }
 }
 

@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -36,8 +35,23 @@ where
         self.len() == 0
     }
 
+    fn heapify_up(&mut self, idx: usize) {
+        //heapify up
+        let mut idx = idx;
+        while idx > 1 && (self.comparator)(&self.items[idx], &self.items[self.parent_idx(idx)]) {
+            // 计算父节点的索引，避免重复借用 `self`
+            let parent_idx = self.parent_idx(idx);
+
+            // 然后执行 swap 操作
+            self.items.swap(idx, parent_idx);
+
+            idx = self.parent_idx(idx);
+        }
+    }
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.items.push(value);
+        self.count += 1;
+        self.heapify_up(self.count);
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -57,8 +71,26 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        if right > self.count || (self.comparator)(&self.items[left], &self.items[right]) {
+            left
+        } else {
+            right
+        }
+    }
+
+    fn heapify_down(&mut self, idx: usize) {
+        let mut idx = idx;
+        while self.children_present(idx) {
+            let smallest_child_idx = self.smallest_child_idx(idx);
+            if (self.comparator)(&self.items[smallest_child_idx], &self.items[idx]) {
+                self.items.swap(smallest_child_idx, idx);
+                idx = smallest_child_idx;
+            } else {
+                break;
+            }
+        }
     }
 }
 
@@ -84,8 +116,18 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        //own iterator
+        if self.is_empty() {
+            return None;
+        }
+        let root = self.items.swap_remove(1);
+        self.count -= 1;
+
+        if self.count > 0 {
+            self.heapify_down(1);
+        }
+
+        Some(root)
     }
 }
 
