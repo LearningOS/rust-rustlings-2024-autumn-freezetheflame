@@ -6,7 +6,6 @@
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -29,13 +28,20 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+// Add the necessary trait bounds here
+impl<T> Default for LinkedList<T>
+where
+    T: PartialOrd + Clone,
+{
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T> LinkedList<T> 
+where
+    T: PartialOrd+Clone
+{
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -69,15 +75,52 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+	pub fn merge(list_a: LinkedList<T>,list_b: LinkedList<T>) -> Self {
+        let mut merged_list = LinkedList::new();
+
+        // Pointers to the current nodes in list_a and list_b
+        let mut a_ptr = list_a.start;
+        let mut b_ptr = list_b.start;
+
+        // Traverse both lists and merge them
+        while let (Some(a_node), Some(b_node)) = (a_ptr, b_ptr) {
+            unsafe {
+                let a_val = &(*a_node.as_ptr()).val;
+                let b_val = &(*b_node.as_ptr()).val;
+                if a_val <= b_val {
+                    // Add the value from list_a to the merged list
+                    merged_list.add(a_val.clone());
+                    // Move to the next node in list_a
+                    a_ptr = (*a_node.as_ptr()).next;
+                } else {
+                    // Add the value from list_b to the merged list
+                    merged_list.add(b_val.clone());
+                    // Move to the next node in list_b
+                    b_ptr = (*b_node.as_ptr()).next;
+                }
+            }
         }
-	}
+
+        // Add any remaining elements from list_a
+        while let Some(a_node) = a_ptr {
+            unsafe {
+                let a_val = &(*a_node.as_ptr()).val;
+                merged_list.add(a_val.clone());
+                a_ptr = (*a_node.as_ptr()).next;
+            }
+        }
+
+        // Add any remaining elements from list_b
+        while let Some(b_node) = b_ptr {
+            unsafe {
+                let b_val = &(*b_node.as_ptr()).val;
+                merged_list.add(b_val.clone());
+                b_ptr = (*b_node.as_ptr()).next;
+            }
+        }
+
+        merged_list
+    }
 }
 
 impl<T> Display for LinkedList<T>
